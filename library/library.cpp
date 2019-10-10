@@ -12,12 +12,15 @@ using namespace std;
 //NOTE: please ensure patron and book data are loaded from disk before calling the following
 //NOTE: also make sure you save patron and book data to disk any time you make a change to them
 //NOTE: for files where data is stored see constants.h BOOKFILE and PATRONFILE
-
+vector<book> books;
+vector<patron> patrons;
 /*
  * clear books and patrons containers
  * then reload them from disk 
  */
 void reloadAllData(){
+	loadBooks(books, BOOKFILE.c_str());
+	loadPatrons(patrons, PATRONFILE.c_str());
 
 }
 
@@ -42,6 +45,49 @@ void reloadAllData(){
  *         TOO_MANY_OUT patron has the max number of books allowed checked out
  */
 int checkout(int bookid, int patronid){
+	reloadAllData();
+	int ser = 0;
+	int found = 0;
+
+	for (int i = 0; i < patrons.size(); ++i){
+		if (patrons[i].patron_id == patronid){
+			found = 1;
+			ser = i;
+			break;
+		}
+	}
+
+	if(found == 0){
+		return PATRON_NOT_ENROLLED;
+	}
+
+	int serBooks = 0;
+	int foundBook = 0;
+	while (serBooks != books.size() - 1){
+		if(books[serBooks].book_id == bookid){
+			foundBook = 1;
+			break;
+		}
+		++serBooks;
+	}
+
+
+
+	if(patrons[ser].number_books_checked_out == MAX_BOOKS_ALLOWED_OUT){
+		return TOO_MANY_OUT;
+	}
+
+	if (foundBook == 0){
+		return BOOK_NOT_IN_COLLECTION;
+	}
+	patrons[ser].number_books_checked_out = patrons[ser].number_books_checked_out + 1;
+
+	books[serBooks].loaned_to_patron_id = patronid;
+	books[serBooks].state = OUT;
+
+	saveBooks(books, BOOKFILE.c_str());
+	savePatrons(patrons, PATRONFILE.c_str());
+
 	return SUCCESS;
 }
 
@@ -58,6 +104,35 @@ int checkout(int bookid, int patronid){
  * 		   BOOK_NOT_IN_COLLECTION
  */
 int checkin(int bookid){
+	reloadAllData();
+	int serBooks = 0;
+	int foundBook = 0;
+	while (serBooks != books.size() - 1){
+		if(books[serBooks].book_id == bookid){
+			foundBook = 1;
+			break;
+		}
+		++serBooks;
+	}
+	if (foundBook == 0){
+		return BOOK_NOT_IN_COLLECTION;
+	}
+	int ser = 0;
+	int found = 0;
+	while (ser != patrons.size() - 1){
+		if(books[serBooks].loaned_to_patron_id == patrons[ser].patron_id){
+			--patrons[ser].number_books_checked_out;
+			break;
+		}
+		++ser;
+	}
+
+	books[serBooks].loaned_to_patron_id = NO_ONE;
+	books[serBooks].state = IN;
+
+	saveBooks(books, BOOKFILE.c_str());
+	savePatrons(patrons, PATRONFILE.c_str());
+
 	return SUCCESS;
 }
 
@@ -71,7 +146,14 @@ int checkin(int bookid){
  *    the patron_id of the person added
  */
 int enroll(std::string &name){
-	return 0;
+	reloadAllData();
+	patron newPatron;
+	newPatron.name = name;
+	newPatron.patron_id = patrons.size();
+	newPatron.number_books_checked_out = NONE;
+	patrons.push_back(newPatron);
+	savePatrons(patrons, PATRONFILE.c_str());
+	return newPatron.patron_id;
 }
 
 /*
@@ -80,7 +162,9 @@ int enroll(std::string &name){
  * 
  */
 int numbBooks(){
-	return 0;
+	reloadAllData();
+
+	return books.size() - 1;
 }
 
 /*
@@ -88,7 +172,8 @@ int numbBooks(){
  * (ie. if 3 patrons returns 3)
  */
 int numbPatrons(){
-	return 0;
+	reloadAllData();
+	return patrons.size() - 1;
 }
 
 /*the number of books patron has checked out
@@ -97,7 +182,28 @@ int numbPatrons(){
  *        or PATRON_NOT_ENROLLED         
  */
 int howmanybooksdoesPatronHaveCheckedOut(int patronid){
-	return 0;
+	reloadAllData();
+	int ser = 0;
+	int found = 0;
+
+	while (ser != patrons.size() - 1){
+		if(patrons[ser].patron_id == patronid){
+			found = 1;
+
+			break;
+		}
+		++ser;
+	}
+	if (found == 0){
+		return PATRON_NOT_ENROLLED;
+	}
+	return patrons[ser].number_books_checked_out;
+	/*for (int i = 0; i < patrons.size(); ++i){
+		if (patrons[i].patron_id == patronid){
+			return patrons[i].number_books_checked_out;
+		}
+	}*/
+
 }
 
 /* search through patrons container to see if patronid is there
@@ -107,6 +213,22 @@ int howmanybooksdoesPatronHaveCheckedOut(int patronid){
  *         PATRON_NOT_ENROLLED no patron with this patronid
  */
 int whatIsPatronName(std::string &name,int patronid){
+	reloadAllData();
+	int ser = 0;
+	int found = 0;
+
+	while (ser != patrons.size() - 1){
+		if(patrons[ser].patron_id == patronid){
+			found = 1;
+
+			break;
+		}
+		++ser;
+	}
+	if (found == 0){
+		return PATRON_NOT_ENROLLED;
+	}
+	name = patrons[ser].name;
 	return SUCCESS;
 }
 
