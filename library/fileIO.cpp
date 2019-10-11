@@ -22,24 +22,27 @@ int loadBooks(std::vector<book> &books, const char* filename) {
 
 	string line;
 	string token;
-	book myBooks;
+
 	stringstream ss;
 
-	while (!file.eof()){
-		getline(file, line);
+	while (getline(file, line)){
+		book myBooks;
 		ss.str(line);
-		getline(ss, myBooks.title, ','); //change to book id
-
-		getline(ss, myBooks.author, ','); // change to book title
 
 		getline(ss, token, ',');
-		myBooks.book_id = atoi(token.c_str()); // change to book author
+		myBooks.book_id = stoi(token); //(token.c_str(), nullptr, 10);
+
+		getline(ss, myBooks.title, ',');
+
+		getline(ss, myBooks.author, ',');
 
 		getline(ss, token, ',');
-		myBooks.loaned_to_patron_id = atoi(token.c_str()); // change to book state.  enum to int conversion on stackoverflow
-		myBooks.state = UNKNOWN; //add loaned to patron id
+		myBooks.state = static_cast<book_checkout_state>(std::stoi(token)); //(token.c_str(), nullptr, 10));
+		getline(ss, token, ',');
+		myBooks.loaned_to_patron_id = stoi(token); //(token.c_str(), nullptr, 10);
 
 		books.push_back(myBooks);
+		ss.clear();
 
 
 
@@ -60,17 +63,17 @@ int loadBooks(std::vector<book> &books, const char* filename) {
  * 			SUCCESS if all data is saved
  * */
 int saveBooks(std::vector<book> &books, const char* filename) {
-	ofstream file;
-	file.open(filename);
+	fstream file;
+	file.open(filename, ios_base::out);
 	if (!file.is_open()){
 		return COULD_NOT_OPEN_FILE;
 	}
-	if(books.size() == 0){
+	if(books.empty()){
 		return NO_BOOKS_IN_LIBRARY;
 	}
 	string data;
 	for (int i = 0; i < books.size(); ++i){
-		data = books[i].title + "," + books[i].author + "," + to_string(books[i].book_id) + "," + to_string(books[i].loaned_to_patron_id);
+		data = to_string(books[i].book_id) + "," + books[i].title + "," + books[i].author + "," + to_string(books[i].state) + "," + to_string(books[i].loaned_to_patron_id);
 		file << data << endl;
 
 	}
@@ -88,31 +91,33 @@ int saveBooks(std::vector<book> &books, const char* filename) {
 int loadPatrons(std::vector<patron> &patrons, const char* filename) {
 	patrons.clear();
 	ifstream file;
-	file.open(filename);
+	file.open(filename, ios::in);
 	if (!file.is_open()){
 		return COULD_NOT_OPEN_FILE;
 	}
 	string line;
 	string token;
-	patron myPatrons;
+
 	stringstream ss;
 
-	while (!file.eof()){
-		getline(file, line);
+	while (getline(file, line)){
+		patron myPatrons;
 		ss.str(line);
 
 		getline(ss, token, ',');
-		myPatrons.patron_id = atoi(token.c_str());
-
-		getline(ss, myPatrons.name, ',');
+		myPatrons.patron_id = stoi(token);
 
 		getline(ss, token, ',');
-		myPatrons.number_books_checked_out = atoi(token.c_str());
+		myPatrons.name = token;
+
+		getline(ss, token, ',');
+		myPatrons.number_books_checked_out = stoi(token);
 
 		patrons.push_back(myPatrons);
+		ss.clear();
 
 	}
-	if(patrons.size() == 0){
+	if(patrons.empty()){
 		return NO_PATRONS_IN_LIBRARY;
 	}
 
@@ -126,12 +131,12 @@ int loadPatrons(std::vector<patron> &patrons, const char* filename) {
  * 			SUCCESS if all data is saved
  * */
 int savePatrons(std::vector<patron> &patrons, const char* filename) {
-	ofstream file;
-	file.open(filename);
+	fstream file;
+	file.open(filename, ios_base::out);
 	if (!file.is_open()){
 		return COULD_NOT_OPEN_FILE;
 	}
-	if(patrons.size() == 0){
+	if(patrons.empty()){
 		return NO_PATRONS_IN_LIBRARY;
 	}
 	string data;

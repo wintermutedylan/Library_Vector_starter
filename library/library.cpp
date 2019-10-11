@@ -46,29 +46,25 @@ void reloadAllData(){
  */
 int checkout(int bookid, int patronid){
 	reloadAllData();
-	int ser = 0;
-	int found = 0;
+	int ser = -5;
 
-	for (int i = 0; i < patrons.size(); ++i){
+	for (int i = 0; i < patrons.size(); i++){
 		if (patrons[i].patron_id == patronid){
-			found = 1;
 			ser = i;
 			break;
 		}
 	}
 
-	if(found == 0){
+	if(ser == -5){
 		return PATRON_NOT_ENROLLED;
 	}
 
-	int serBooks = 0;
-	int foundBook = 0;
-	while (serBooks != books.size() - 1){
-		if(books[serBooks].book_id == bookid){
-			foundBook = 1;
+	int serBooks = -5;
+	for (int k = 0; k < books.size(); k++){
+		if (books[k].book_id == bookid){
+			serBooks = k;
 			break;
 		}
-		++serBooks;
 	}
 
 
@@ -77,10 +73,10 @@ int checkout(int bookid, int patronid){
 		return TOO_MANY_OUT;
 	}
 
-	if (foundBook == 0){
+	if (serBooks == -5){
 		return BOOK_NOT_IN_COLLECTION;
 	}
-	patrons[ser].number_books_checked_out = patrons[ser].number_books_checked_out + 1;
+	patrons[ser].number_books_checked_out++;
 
 	books[serBooks].loaned_to_patron_id = patronid;
 	books[serBooks].state = OUT;
@@ -105,26 +101,23 @@ int checkout(int bookid, int patronid){
  */
 int checkin(int bookid){
 	reloadAllData();
-	int serBooks = 0;
-	int foundBook = 0;
-	while (serBooks != books.size() - 1){
-		if(books[serBooks].book_id == bookid){
-			foundBook = 1;
+	int serBooks = -5;
+	for (int i = 0; i < books.size(); i++){
+		if(books[i].book_id == bookid){
+			serBooks = i;
 			break;
 		}
-		++serBooks;
+
 	}
-	if (foundBook == 0){
+	if (serBooks == -5){
 		return BOOK_NOT_IN_COLLECTION;
 	}
-	int ser = 0;
-	int found = 0;
-	while (ser != patrons.size() - 1){
-		if(books[serBooks].loaned_to_patron_id == patrons[ser].patron_id){
-			--patrons[ser].number_books_checked_out;
+	int ser = -5;
+	for (int k = 0; k < patrons.size(); k++){
+		if(books[k].loaned_to_patron_id == patrons[k].patron_id){
+			patrons[k].number_books_checked_out--;
 			break;
 		}
-		++ser;
 	}
 
 	books[serBooks].loaned_to_patron_id = NO_ONE;
@@ -148,9 +141,11 @@ int checkin(int bookid){
 int enroll(std::string &name){
 	reloadAllData();
 	patron newPatron;
+	int nextP = patrons.size();
 	newPatron.name = name;
-	newPatron.patron_id = patrons.size();
 	newPatron.number_books_checked_out = NONE;
+	newPatron.patron_id = nextP;
+
 	patrons.push_back(newPatron);
 	savePatrons(patrons, PATRONFILE.c_str());
 	return newPatron.patron_id;
@@ -164,7 +159,7 @@ int enroll(std::string &name){
 int numbBooks(){
 	reloadAllData();
 
-	return books.size() - 1;
+	return books.size();
 }
 
 /*
@@ -173,7 +168,7 @@ int numbBooks(){
  */
 int numbPatrons(){
 	reloadAllData();
-	return patrons.size() - 1;
+	return patrons.size();
 }
 
 /*the number of books patron has checked out
@@ -183,21 +178,14 @@ int numbPatrons(){
  */
 int howmanybooksdoesPatronHaveCheckedOut(int patronid){
 	reloadAllData();
-	int ser = 0;
-	int found = 0;
 
-	while (ser != patrons.size() - 1){
-		if(patrons[ser].patron_id == patronid){
-			found = 1;
-
-			break;
+	for (int i = 0; i < patrons.size(); i++){
+			if (patrons[i].patron_id == patronid){
+				return patrons[i].number_books_checked_out;
+			}
 		}
-		++ser;
-	}
-	if (found == 0){
-		return PATRON_NOT_ENROLLED;
-	}
-	return patrons[ser].number_books_checked_out;
+	return PATRON_NOT_ENROLLED;
+
 	/*for (int i = 0; i < patrons.size(); ++i){
 		if (patrons[i].patron_id == patronid){
 			return patrons[i].number_books_checked_out;
@@ -214,21 +202,12 @@ int howmanybooksdoesPatronHaveCheckedOut(int patronid){
  */
 int whatIsPatronName(std::string &name,int patronid){
 	reloadAllData();
-	int ser = 0;
-	int found = 0;
 
-	while (ser != patrons.size() - 1){
-		if(patrons[ser].patron_id == patronid){
-			found = 1;
-
-			break;
+	for (int i = 0; i < patrons.size(); i++){
+		if (patrons[i].patron_id == patronid){
+			return SUCCESS;
 		}
-		++ser;
 	}
-	if (found == 0){
-		return PATRON_NOT_ENROLLED;
-	}
-	name = patrons[ser].name;
-	return SUCCESS;
+	return PATRON_NOT_ENROLLED;
 }
 
