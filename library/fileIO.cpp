@@ -30,16 +30,16 @@ int loadBooks(std::vector<book> &books, const char* filename) {
 		ss.str(line);
 
 		getline(ss, token, ',');
-		myBooks.book_id = stoi(token); //(token.c_str(), nullptr, 10);
+		myBooks.book_id = stoi(token);
 
 		getline(ss, myBooks.title, ',');
 
 		getline(ss, myBooks.author, ',');
 
 		getline(ss, token, ',');
-		myBooks.state = static_cast<book_checkout_state>(std::stoi(token)); //(token.c_str(), nullptr, 10));
+		myBooks.state = static_cast<book_checkout_state>(std::stoi(token));
 		getline(ss, token, ',');
-		myBooks.loaned_to_patron_id = stoi(token); //(token.c_str(), nullptr, 10);
+		myBooks.loaned_to_patron_id = stoi(token);
 
 		books.push_back(myBooks);
 		ss.clear();

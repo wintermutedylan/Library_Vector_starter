@@ -186,12 +186,6 @@ int howmanybooksdoesPatronHaveCheckedOut(int patronid){
 		}
 	return PATRON_NOT_ENROLLED;
 
-	/*for (int i = 0; i < patrons.size(); ++i){
-		if (patrons[i].patron_id == patronid){
-			return patrons[i].number_books_checked_out;
-		}
-	}*/
-
 }
 
 /* search through patrons container to see if patronid is there
